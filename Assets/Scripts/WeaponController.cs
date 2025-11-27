@@ -11,8 +11,8 @@ public class WeaponController : MonoBehaviour
 
     [Header("References")]
     public Camera fpsCam; // The main camera
-    public ParticleSystem muzzleFlash; // Optional: visual effect
-    public GameObject impactEffect; // Optional: bullet hole effect
+    public ParticleSystem muzzleFlash;
+    public GameObject impactEffect; 
 
     [Header("Animation")]
     public Animator gunAnimator; // We'll set this up in Part 2
@@ -48,7 +48,6 @@ public class WeaponController : MonoBehaviour
 
     void Shoot()
     {
-        // Check ammo
         if (currentAmmo <= 0)
         {
             Debug.Log("Out of ammo!");
@@ -57,39 +56,29 @@ public class WeaponController : MonoBehaviour
 
         currentAmmo--;
 
-        Debug.Log("Shooting! Ammo left: " + currentAmmo);
-
-        // Play muzzle flash
-        if (muzzleFlash != null)
-        {
-            muzzleFlash.Play();
-        }
-
-        // Play shooting animation
         if (gunAnimator != null)
-        {
             gunAnimator.SetTrigger("Shoot");
-        }
 
-        // Raycast from center of screen
         RaycastHit hit;
+
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
             Debug.Log("Hit: " + hit.transform.name);
 
-            // Check if we hit an enemy or target
             Target target = hit.transform.GetComponent<Target>();
             if (target != null)
-            {
                 target.TakeDamage(damage);
-            }
 
-            // Spawn impact effect (bullet hole, sparks, etc.)
             if (impactEffect != null)
             {
-                GameObject impact = Instantiate(impactEffect, hit.point, Quaternion.LookRotation(hit.normal));
-                Destroy(impact, 2f); // Remove after 2 seconds
+                Vector3 pos = hit.point + hit.normal * 0.02f;
+                Quaternion rot = Quaternion.LookRotation(hit.normal);
+                Instantiate(impactEffect, pos, rot);
             }
+        }
+        else
+        {
+            Debug.Log("Raycast hit NOTHING");
         }
     }
 
