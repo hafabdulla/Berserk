@@ -22,6 +22,16 @@ public class WeaponController : MonoBehaviour
 
     private float nextTimeToFire = 0f;
 
+    [Header("Recoil Settings")]
+    public float recoilAmount = 1.0f;
+    public float recoilRecoverySpeed = 2.0f;
+    public float maxRecoilAngle = 5.0f;
+
+    private Vector3 currentRecoil = Vector3.zero;
+    private Vector3 targetRecoil = Vector3.zero;
+
+    //audioMgmt
+    GameObject audioManager;
     void Start()
     {
         currentAmmo = maxAmmo;
@@ -37,6 +47,8 @@ public class WeaponController : MonoBehaviour
         {
             playerController = GetComponentInParent<CharacterController>();
         }
+        // Find Audio Manager
+        audioManager = GameObject.Find("AudioManager");
     }
 
     void Update()
@@ -56,6 +68,8 @@ public class WeaponController : MonoBehaviour
         {
             Reload();
         }
+
+        HandleRecoil();
     }
 
     void HandleMovementAnimations()
@@ -94,7 +108,8 @@ public class WeaponController : MonoBehaviour
         return Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f;
     }
 
-    void Shoot()
+    
+    public void Shoot()
     {
         if (currentAmmo <= 0)
         {
@@ -103,10 +118,11 @@ public class WeaponController : MonoBehaviour
         }
 
         currentAmmo--;
-
+        muzzleFlash.Play();
+        audioManager.GetComponent<AudioController>().playPlasmaGunSound();
         if (gunAnimator != null)
             gunAnimator.SetTrigger("Shoot");
-
+        
         RaycastHit hit;
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
@@ -127,6 +143,33 @@ public class WeaponController : MonoBehaviour
         {
             Debug.Log("Raycast hit NOTHING");
         }
+    }
+
+    void HandleRecoil()
+    {
+        // Always apply current recoil to camera
+        fpsCam.transform.localRotation = Quaternion.Euler(currentRecoil);
+
+        // Gradually reduce recoil over time
+        if (currentRecoil != Vector3.zero)
+        {
+            currentRecoil = Vector3.Lerp(currentRecoil, Vector3.zero, recoilRecoverySpeed * Time.deltaTime);
+        }
+    }
+
+
+    void AddRecoil()
+    {
+        // Generate random recoil pattern
+        float verticalRecoil = Random.Range(0.5f, 1.0f) * recoilAmount;
+        float horizontalRecoil = Random.Range(-0.5f, 0.5f) * recoilAmount;
+
+        Vector3 newRecoil = new Vector3(-verticalRecoil, horizontalRecoil, 0);
+        currentRecoil += newRecoil;
+
+        // Clamp the maximum recoil
+        currentRecoil.x = Mathf.Clamp(currentRecoil.x, -maxRecoilAngle, maxRecoilAngle);
+        currentRecoil.y = Mathf.Clamp(currentRecoil.y, -maxRecoilAngle, maxRecoilAngle);
     }
 
     void Reload()
