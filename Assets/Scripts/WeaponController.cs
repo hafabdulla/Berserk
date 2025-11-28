@@ -12,10 +12,13 @@ public class WeaponController : MonoBehaviour
     [Header("References")]
     public Camera fpsCam; // The main camera
     public ParticleSystem muzzleFlash;
-    public GameObject impactEffect; 
+    public GameObject impactEffect;
 
     [Header("Animation")]
-    public Animator gunAnimator; // We'll set this up in Part 2
+    public Animator gunAnimator;
+
+    [Header("Movement Detection")]
+    public CharacterController playerController; // Reference to player's character controller
 
     private float nextTimeToFire = 0f;
 
@@ -28,10 +31,19 @@ public class WeaponController : MonoBehaviour
         {
             fpsCam = Camera.main;
         }
+
+        // Auto-find character controller if not assigned
+        if (playerController == null)
+        {
+            playerController = GetComponentInParent<CharacterController>();
+        }
     }
 
     void Update()
     {
+        // Handle movement animations
+        HandleMovementAnimations();
+
         // Check if player is shooting
         if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
         {
@@ -39,11 +51,47 @@ public class WeaponController : MonoBehaviour
             Shoot();
         }
 
-        // Reload (optional - for later)
+        // Reload
         if (Input.GetKeyDown(KeyCode.R))
         {
             Reload();
         }
+    }
+
+    void HandleMovementAnimations()
+    {
+        if (gunAnimator == null) return;
+
+        // Check if player is moving
+        bool isMoving = IsPlayerMoving();
+        bool isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
+
+        // Set animator parameters
+        gunAnimator.SetBool("IsWalking", isMoving && !isRunning);
+        gunAnimator.SetBool("IsRunning", isRunning);
+
+        // Optional: Set float for blend trees if your animation uses them
+        float moveSpeed = 0f;
+        if (isRunning)
+            moveSpeed = 1f;
+        else if (isMoving)
+            moveSpeed = 0.5f;
+
+        gunAnimator.SetFloat("MoveSpeed", moveSpeed);
+    }
+
+    bool IsPlayerMoving()
+    {
+        // Method 1: Using Character Controller velocity (more accurate)
+        if (playerController != null)
+        {
+            return playerController.velocity.magnitude > 0.1f;
+        }
+
+        // Method 2: Fallback - check input directly
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        return Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f;
     }
 
     void Shoot()
@@ -55,16 +103,15 @@ public class WeaponController : MonoBehaviour
         }
 
         currentAmmo--;
-        muzzleFlash.Play();
 
         if (gunAnimator != null)
             gunAnimator.SetTrigger("Shoot");
 
         RaycastHit hit;
-
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
             Debug.Log("Hit: " + hit.transform.name);
+
             Target target = hit.transform.GetComponent<Target>();
             if (target != null)
                 target.TakeDamage(damage);
@@ -87,7 +134,6 @@ public class WeaponController : MonoBehaviour
         Debug.Log("Reloading...");
         currentAmmo = maxAmmo;
 
-        // Play reload animation
         if (gunAnimator != null)
         {
             gunAnimator.SetTrigger("Reload");
