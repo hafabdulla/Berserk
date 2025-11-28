@@ -55,6 +55,7 @@ public class WeaponController : MonoBehaviour
         }
 
         currentAmmo--;
+        muzzleFlash.Play();
 
         if (gunAnimator != null)
             gunAnimator.SetTrigger("Shoot");
@@ -64,7 +65,6 @@ public class WeaponController : MonoBehaviour
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
             Debug.Log("Hit: " + hit.transform.name);
-
             Target target = hit.transform.GetComponent<Target>();
             if (target != null)
                 target.TakeDamage(damage);
