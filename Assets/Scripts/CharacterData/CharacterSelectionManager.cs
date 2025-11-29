@@ -158,6 +158,6 @@ public class CharacterSelectionManager : MonoBehaviour
         Debug.Log("Selected: " + characters[currentIndex].characterName);
 
         // Load next scene (e.g., Level1 or WeaponSelection)
-        SceneManager.LoadScene("Level1");
+        SceneManager.LoadScene("MainLobby");
     }
 }
