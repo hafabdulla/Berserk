@@ -5,12 +5,12 @@ public class WeaponController : MonoBehaviour
     [Header("Shooting Settings")]
     public float damage = 25f;
     public float range = 100f;
-    public float fireRate = 0.1f; // Time between shots
+    public float fireRate = 0.1f;
     public int maxAmmo = 30;
     public int currentAmmo;
 
     [Header("References")]
-    public Camera fpsCam; // The main camera
+    public Camera fpsCam;
     public ParticleSystem muzzleFlash;
     public GameObject impactEffect;
 
@@ -18,7 +18,12 @@ public class WeaponController : MonoBehaviour
     public Animator gunAnimator;
 
     [Header("Movement Detection")]
-    public CharacterController playerController; // Reference to player's character controller
+    public CharacterController playerController;
+
+    [Header("Idle Inspection")]
+    public float idleTimeBeforeInspect = 5f; // Time in seconds before inspect plays
+    private float idleTimer = 0f;
+    private bool hasPlayedInspect = false;
 
     private float nextTimeToFire = 0f;
 
@@ -30,24 +35,22 @@ public class WeaponController : MonoBehaviour
     private Vector3 currentRecoil = Vector3.zero;
     private Vector3 targetRecoil = Vector3.zero;
 
-    //audioMgmt
     GameObject audioManager;
+
     void Start()
     {
         currentAmmo = maxAmmo;
 
-        // Auto-find camera if not assigned
         if (fpsCam == null)
         {
             fpsCam = Camera.main;
         }
 
-        // Auto-find character controller if not assigned
         if (playerController == null)
         {
             playerController = GetComponentInParent<CharacterController>();
         }
-        // Find Audio Manager
+
         audioManager = GameObject.Find("AudioManager");
     }
 
@@ -55,6 +58,9 @@ public class WeaponController : MonoBehaviour
     {
         // Handle movement animations
         HandleMovementAnimations();
+
+        // Handle idle inspection
+        HandleIdleInspection();
 
         // Check if player is shooting
         if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
@@ -76,15 +82,12 @@ public class WeaponController : MonoBehaviour
     {
         if (gunAnimator == null) return;
 
-        // Check if player is moving
         bool isMoving = IsPlayerMoving();
         bool isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
 
-        // Set animator parameters
         gunAnimator.SetBool("IsWalking", isMoving && !isRunning);
         gunAnimator.SetBool("IsRunning", isRunning);
 
-        // Optional: Set float for blend trees if your animation uses them
         float moveSpeed = 0f;
         if (isRunning)
             moveSpeed = 1f;
@@ -94,21 +97,46 @@ public class WeaponController : MonoBehaviour
         gunAnimator.SetFloat("MoveSpeed", moveSpeed);
     }
 
+    void HandleIdleInspection()
+    {
+        if (gunAnimator == null) return;
+
+        bool isMoving = IsPlayerMoving();
+        bool isShooting = Input.GetButton("Fire1");
+        bool isReloading = Input.GetKey(KeyCode.R);
+
+        // Reset timer if player is doing something
+        if (isMoving || isShooting || isReloading)
+        {
+            idleTimer = 0f;
+            hasPlayedInspect = false;
+            return;
+        }
+
+        // Increment idle timer
+        idleTimer += Time.deltaTime;
+
+        // Trigger inspect animation when idle long enough
+        if (idleTimer >= idleTimeBeforeInspect && !hasPlayedInspect)
+        {
+            gunAnimator.SetTrigger("Inspect");
+            hasPlayedInspect = true;
+            idleTimer = 0f; // Reset timer after playing
+        }
+    }
+
     bool IsPlayerMoving()
     {
-        // Method 1: Using Character Controller velocity (more accurate)
         if (playerController != null)
         {
             return playerController.velocity.magnitude > 0.1f;
         }
 
-        // Method 2: Fallback - check input directly
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
         return Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f;
     }
 
-    
     public void Shoot()
     {
         if (currentAmmo <= 0)
@@ -118,11 +146,17 @@ public class WeaponController : MonoBehaviour
         }
 
         currentAmmo--;
+
+        // Reset idle timer when shooting
+        idleTimer = 0f;
+        hasPlayedInspect = false;
+
         muzzleFlash.Play();
         audioManager.GetComponent<AudioController>().playPlasmaGunSound();
+
         if (gunAnimator != null)
             gunAnimator.SetTrigger("Shoot");
-        
+
         RaycastHit hit;
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
@@ -147,27 +181,22 @@ public class WeaponController : MonoBehaviour
 
     void HandleRecoil()
     {
-        // Always apply current recoil to camera
         fpsCam.transform.localRotation = Quaternion.Euler(currentRecoil);
 
-        // Gradually reduce recoil over time
         if (currentRecoil != Vector3.zero)
         {
             currentRecoil = Vector3.Lerp(currentRecoil, Vector3.zero, recoilRecoverySpeed * Time.deltaTime);
         }
     }
 
-
     void AddRecoil()
     {
-        // Generate random recoil pattern
         float verticalRecoil = Random.Range(0.5f, 1.0f) * recoilAmount;
         float horizontalRecoil = Random.Range(-0.5f, 0.5f) * recoilAmount;
 
         Vector3 newRecoil = new Vector3(-verticalRecoil, horizontalRecoil, 0);
         currentRecoil += newRecoil;
 
-        // Clamp the maximum recoil
         currentRecoil.x = Mathf.Clamp(currentRecoil.x, -maxRecoilAngle, maxRecoilAngle);
         currentRecoil.y = Mathf.Clamp(currentRecoil.y, -maxRecoilAngle, maxRecoilAngle);
     }
@@ -176,6 +205,10 @@ public class WeaponController : MonoBehaviour
     {
         Debug.Log("Reloading...");
         currentAmmo = maxAmmo;
+
+        // Reset idle timer when reloading
+        idleTimer = 0f;
+        hasPlayedInspect = false;
 
         if (gunAnimator != null)
         {
