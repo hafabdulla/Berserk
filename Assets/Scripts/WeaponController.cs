@@ -37,6 +37,8 @@ public class WeaponController : MonoBehaviour
 
     GameObject audioManager;
 
+
+    private PlayerStats playerStats;
     void Start()
     {
         currentAmmo = maxAmmo;
@@ -50,6 +52,9 @@ public class WeaponController : MonoBehaviour
         {
             playerController = GetComponentInParent<CharacterController>();
         }
+
+
+        playerStats = GetComponentInParent<PlayerStats>();
 
         audioManager = GameObject.Find("AudioManager");
     }
@@ -164,7 +169,18 @@ public class WeaponController : MonoBehaviour
 
             Target target = hit.transform.GetComponent<Target>();
             if (target != null)
-                target.TakeDamage(damage);
+            {
+                // Calculate actual damage with character stats
+                float actualDamage = damage;
+
+                if (playerStats != null)
+                {
+                    actualDamage = damage * playerStats.GetDamageMultiplier();
+                    Debug.Log($"Damage: {damage} x {playerStats.GetDamageMultiplier()} = {actualDamage}");
+                }
+
+                target.TakeDamage(actualDamage); // Use multiplied damage
+            }
 
             if (impactEffect != null)
             {
