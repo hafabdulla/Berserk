@@ -7,10 +7,12 @@ public class AudioController : MonoBehaviour
     public AudioSource audiosource;
     public AudioClip plasmaGun;
     public AudioClip flyby;
+    public AudioClip droidSound; //must be played in a loop. represents the breathing of the robot
     public float flybyInterval = 10f; // interval in seconds
     void Start()
     {
         StartCoroutine(PlayFlybyEvery10Seconds());
+        PlayDroidLoop();
     }
 
     public void playPlasmaGunSound()
@@ -30,5 +32,12 @@ public class AudioController : MonoBehaviour
     public void playFlybySound()
     {
         audiosource.PlayOneShot(flyby);
+    }
+
+    public void PlayDroidLoop()
+    {
+        audiosource.loop = true;
+        audiosource.clip = droidSound;
+        audiosource.Play();
     }
 }

@@ -11700,6 +11700,7 @@ MonoBehaviour:
   audiosource: {fileID: 864433237}
   plasmaGun: {fileID: 8300000, guid: 676e943d0e057e5458e8727627c8fc97, type: 3}
   flyby: {fileID: 8300000, guid: 25ef455334fe31a46bdac5c06986b452, type: 3}
+  droidSound: {fileID: 8300000, guid: 6a61b8eabb19c014c84e8f11fc784a26, type: 3}
   flybyInterval: 40
 --- !u!4 &864433239
 Transform:
