@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
@@ -12,10 +12,11 @@ public class MainLobbyController : MonoBehaviour
 
     [Header("Currency")]
     public TextMeshProUGUI goldAmountText;
+
     [Header("Character Display")]
-    public Transform characterSpawnPoint;
     public GameObject[] allCharacterPrefabs; // Array of ALL character models
     private GameObject currentCharacterInstance;
+
 
     [Header("Buttons")]
     public Button levelsButton;
@@ -23,17 +24,20 @@ public class MainLobbyController : MonoBehaviour
     public Button inventoryButton;
     public Button storeButton;
     public Button startMissionButton;
+    public Button quitButton;
 
     [Header("Warning Panel")]
-    public GameObject characterWarningPanel; // Panel that says "Select a character first!"
+    public GameObject warningPanel; // Panel that shows warnings
+    public TextMeshProUGUI warningMessageText; // Text inside warning panel
     public Button warningOkButton;
 
     private bool hasSelectedCharacter = false;
+    private bool hasSelectedGun = false;
 
     void Start()
     {
-        // Check if character is selected
-        CheckCharacterSelection();
+        // Check selections
+        CheckSelections();
 
         // Setup button listeners
         levelsButton.onClick.AddListener(OnLevelsClicked);
@@ -41,6 +45,7 @@ public class MainLobbyController : MonoBehaviour
         inventoryButton.onClick.AddListener(OnInventoryClicked);
         storeButton.onClick.AddListener(OnStoreClicked);
         startMissionButton.onClick.AddListener(OnStartMissionClicked);
+
 
         if (warningOkButton != null)
             warningOkButton.onClick.AddListener(OnWarningOkClicked);
@@ -50,46 +55,32 @@ public class MainLobbyController : MonoBehaviour
         LoadCharacterDisplay();
     }
 
-    void CheckCharacterSelection()
+    void CheckSelections()
     {
         hasSelectedCharacter = PlayerPrefs.HasKey("SelectedCharacter");
+        hasSelectedGun = PlayerPrefs.HasKey("SelectedGun");
 
-        if (!hasSelectedCharacter)
+        Debug.Log($"Character selected: {hasSelectedCharacter}, Gun selected: {hasSelectedGun}");
+
+        // Enable/disable Start Mission button based on selections
+        if (startMissionButton != null)
         {
-            Debug.Log("No character selected - showing first-time message");
+            bool canStart = hasSelectedCharacter && hasSelectedGun;
+            startMissionButton.interactable = canStart;
 
-            // Option A: Immediately go to character selection
-            // SceneManager.LoadScene("CharacterSelection");
-
-            // Option B: Show warning and disable Start Mission button
-            if (startMissionButton != null)
+            if (!canStart)
             {
-                startMissionButton.interactable = false;
-                // You can change button color to show it's disabled
+                // Visual feedback that button is disabled
                 ColorBlock colors = startMissionButton.colors;
                 colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
                 startMissionButton.colors = colors;
             }
-
-            if (characterWarningPanel != null)
-            {
-                // Show warning panel briefly or keep it until user selects
-                // characterWarningPanel.SetActive(true);
-            }
         }
-        else
+
+        // Hide warning panel initially
+        if (warningPanel != null)
         {
-            Debug.Log("Character already selected");
-
-            if (startMissionButton != null)
-            {
-                startMissionButton.interactable = true;
-            }
-
-            if (characterWarningPanel != null)
-            {
-                characterWarningPanel.SetActive(false);
-            }
+            warningPanel.SetActive(false);
         }
     }
 
@@ -129,33 +120,30 @@ public class MainLobbyController : MonoBehaviour
             }
         }
 
-        // Spawn the character
-        if (characterToSpawn != null && characterSpawnPoint != null)
+        // Spawn the character at specific position and scale
+        if (characterToSpawn != null)
         {
-            // Specific position and scale for lobby display
-            Vector3 spawnPosition = new Vector3(0, 0, -7);
-            Vector3 spawnScale = new Vector3(1.5f, 1.5f, 1.5f);
-
             currentCharacterInstance = Instantiate(
                 characterToSpawn,
-                spawnPosition,
-                Quaternion.identity // Default rotation (facing forward)
+                new Vector3(0, 0, -7),  // Position
+                Quaternion.identity      // Rotation (facing forward)
             );
 
-            // Apply scale
-            currentCharacterInstance.transform.localScale = spawnScale;
+            // Set scale
+            currentCharacterInstance.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
 
-            // Optional: Add slow rotation to character for better viewing
+            // Optional: Add slow rotation for better viewing
             CharacterRotator rotator = currentCharacterInstance.AddComponent<CharacterRotator>();
-            rotator.rotationSpeed = 20f; // Slow rotation
+            rotator.rotationSpeed = 20f;
 
-            // Play idle animation
+            // Play idle animation if available
             Animator animator = currentCharacterInstance.GetComponent<Animator>();
             if (animator != null)
             {
-                // Let default idle animation play
-                Debug.Log("Character animator found, playing idle");
+                Debug.Log("Character animator found");
             }
+
+            Debug.Log($"Character spawned at (0, 0, -7) with scale (1.5, 1.5, 1.5)");
         }
         else
         {
@@ -163,13 +151,14 @@ public class MainLobbyController : MonoBehaviour
         }
     }
 
+
+
     void LoadPlayerInfo()
     {
         // Load player info from PlayerPrefs
         string playerName = PlayerPrefs.GetString("PlayerName", "TANGO SsS00024");
         int playerRank = PlayerPrefs.GetInt("PlayerRank", 15);
         int goldAmount = PlayerPrefs.GetInt("GoldAmount", 152);
-        int coinAmount = PlayerPrefs.GetInt("CoinAmount", 0);
 
         // Update UI
         if (usernameText != null)
@@ -188,6 +177,9 @@ public class MainLobbyController : MonoBehaviour
         Debug.Log("Levels clicked");
         // TODO: Open level selection screen
         // SceneManager.LoadScene("LevelSelection");
+
+        // For now, show message
+        Debug.Log("Level selection not implemented yet");
     }
 
     void OnRecruitClicked()
@@ -200,47 +192,97 @@ public class MainLobbyController : MonoBehaviour
     {
         Debug.Log("Inventory clicked");
         // TODO: Open inventory screen
+        SceneManager.LoadScene("GunSelection");
+
     }
 
     void OnStoreClicked()
     {
-        Debug.Log("Store clicked");
-        // TODO: Open store/gun selection
+        Debug.Log("Store/Gun Selection clicked");
+        SceneManager.LoadScene("GunSelection");
     }
 
     void OnStartMissionClicked()
     {
         Debug.Log("Start Mission clicked");
 
-        // Double check character selection
-        if (!PlayerPrefs.HasKey("SelectedCharacter"))
+        // Check if both character and gun are selected
+        if (!hasSelectedCharacter && !hasSelectedGun)
         {
-            Debug.LogWarning("Cannot start mission - No character selected!");
-            ShowCharacterWarning();
+            ShowWarning("⚠️ Selection Required!\n\nPlease select a CHARACTER and a WEAPON before starting a mission.");
+            return;
+        }
+        else if (!hasSelectedCharacter)
+        {
+            ShowWarning("⚠️ No Character Selected!\n\nPlease select a character before starting a mission.");
+            return;
+        }
+        else if (!hasSelectedGun)
+        {
+            ShowWarning("⚠️ No Weapon Selected!\n\nPlease select a weapon before starting a mission.");
             return;
         }
 
         // All checks passed - start the game
+        Debug.Log("Starting mission...");
         SceneManager.LoadScene("Level1");
     }
 
-    void ShowCharacterWarning()
+    void OnSettingsClicked()
     {
-        if (characterWarningPanel != null)
+        Debug.Log("Settings clicked");
+        // TODO: Open settings menu
+        Debug.Log("Settings not implemented yet");
+    }
+
+    
+
+    void ShowWarning(string message)
+    {
+        if (warningPanel != null)
         {
-            characterWarningPanel.SetActive(true);
+            warningPanel.SetActive(true);
+
+            if (warningMessageText != null)
+            {
+                warningMessageText.text = message;
+            }
         }
         else
         {
-            // Fallback - just go to character selection
-            Debug.Log("Please select a character first!");
-            SceneManager.LoadScene("CharacterSelection");
+            // Fallback if no warning panel - just log and redirect
+            Debug.LogWarning(message);
+
+            // Automatically redirect to appropriate selection screen
+            if (!hasSelectedCharacter)
+            {
+                SceneManager.LoadScene("CharacterSelection");
+            }
+            else if (!hasSelectedGun)
+            {
+                SceneManager.LoadScene("GunSelection");
+            }
         }
     }
 
     void OnWarningOkClicked()
     {
-        // User acknowledged warning - take them to character selection
-        SceneManager.LoadScene("CharacterSelection");
+        // Hide warning panel
+        if (warningPanel != null)
+        {
+            warningPanel.SetActive(false);
+        }
+
+        // Redirect user to appropriate selection screen
+        if (!hasSelectedCharacter)
+        {
+            Debug.Log("Redirecting to Character Selection");
+            SceneManager.LoadScene("CharacterSelection");
+        }
+        else if (!hasSelectedGun)
+        {
+            Debug.Log("Redirecting to Gun Selection");
+            SceneManager.LoadScene("GunSelection");
+        }
     }
 }
