@@ -17,10 +17,9 @@ public class CharacterSelectionManager : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI characterNameText;
 
-    // Your 3 bars from Figma design
-    public Image attackBar;   // Red bar (maps to damage/attack)
-    public Image defenceBar;  // Blue bar (maps to health/defence)
-    public Image mobilityBar; // Yellow/Green bar (maps to speed/mobility)
+    public Image attackBar;
+    public Image defenceBar; 
+    public Image mobilityBar; 
 
     [Header("Buttons")]
     public Button leftButton;
@@ -33,12 +32,10 @@ public class CharacterSelectionManager : MonoBehaviour
 
     void Start()
     {
-        // Setup button listeners
         leftButton.onClick.AddListener(PreviousCharacter);
         rightButton.onClick.AddListener(NextCharacter);
         selectButton.onClick.AddListener(SelectCharacter);
 
-        // Display first character
         DisplayCharacter(currentIndex);
     }
 
