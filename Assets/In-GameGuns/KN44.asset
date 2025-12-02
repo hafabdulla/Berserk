@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e5343ee658f62b43ac675a6af28b407, type: 3}
   m_Name: KN44
   m_EditorClassIdentifier: 
-  gunName: 
+  gunName: KN-44
   gunPrefab: {fileID: 4868579935490016500, guid: d8f3b4be17ae23a40a65adaea73c47c5, type: 3}
   damage: 60
   fireRate: 90
