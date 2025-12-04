@@ -7,53 +7,67 @@ using System.Collections;
 public class GunSelectionManager : MonoBehaviour
 {
     [Header("Gun Data")]
-    public GunData[] guns; // CHANGED: was characters
+    public GunData[] guns;
     private int currentIndex = 0;
 
     [Header("Spawn Settings")]
+    public Transform cameraTransform; // Main Camera reference
     private GameObject currentGunInstance;
 
-    // Specific transform values for gun display
-    private Vector3 gunPosition = new Vector3(401.8161f, 440.91f, 240.999f);
-    private Vector3 gunRotation = new Vector3(-105.594f, 38.82899f, 27.48f);
-    private Vector3 gunScale = new Vector3(900f, 900f, 900f);
+    // Local transform values (relative to camera)
+    private Vector3 gunLocalPosition = new Vector3(0f, 0f, 1.5f);
+    private Vector3 gunLocalScale = new Vector3(1f, 1f, 1f);
 
     [Header("UI References")]
-    public TextMeshProUGUI gunNameText; // CHANGED: was characterNameText
-    public Image damageBar; // CHANGED: was attackBar
-    public Image fireRateBar; // NEW
-    public Image rangeBar; // CHANGED: was mobilityBar
-    //public Image ammoBar; // NEW (or replace defenceBar)
+    public TextMeshProUGUI gunNameText;
+    public Image damageBar;
+    public Image fireRateBar;
+    public Image rangeBar;
+
 
     [Header("Buttons")]
     public Button leftButton;
     public Button rightButton;
     public Button selectButton;
-    public Button backButton; // NEW: add back button
+    public Button backButton;
 
     [Header("Animation Settings")]
     public bool animateBars = true;
     public float barAnimationSpeed = 0.3f;
     public bool rotateGun = true;
-    public float rotationSpeed = 30f;
-    public Vector3 rotationAxis = Vector3.up; // Y axis rotation
+    public float rotationSpeed = 50f; // Degrees per second
+
+    private float currentRotationY = 0f;
 
     void Start()
     {
-        leftButton.onClick.AddListener(PreviousGun); // CHANGED
-        rightButton.onClick.AddListener(NextGun); // CHANGED
-        selectButton.onClick.AddListener(SelectGun); // CHANGED
-        backButton.onClick.AddListener(BackToLobby); // NEW
+        // Auto-find camera if not assigned
+        if (cameraTransform == null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
 
-        DisplayGun(currentIndex); // CHANGED
+        leftButton.onClick.AddListener(PreviousGun);
+        rightButton.onClick.AddListener(NextGun);
+        selectButton.onClick.AddListener(SelectGun);
+        backButton.onClick.AddListener(BackToLobby);
+
+        DisplayGun(currentIndex);
     }
 
     void Update()
     {
-        // Rotate gun for display
+        // Rotate gun continuously around Y axis
         if (rotateGun && currentGunInstance != null)
         {
-            currentGunInstance.transform.Rotate(rotationAxis, rotationSpeed * Time.deltaTime, Space.World);
+            currentRotationY += rotationSpeed * Time.deltaTime;
+
+            // Keep rotation between 0-360
+            if (currentRotationY >= 360f)
+                currentRotationY -= 360f;
+
+            // Apply rotation (only Y axis, X and Z remain 0)
+            currentGunInstance.transform.localRotation = Quaternion.Euler(0f, currentRotationY, 0f);
         }
     }
 
@@ -66,7 +80,6 @@ public class GunSelectionManager : MonoBehaviour
         DisplayGun(currentIndex);
     }
 
-
     public void PreviousGun()
     {
         currentIndex--;
@@ -78,24 +91,40 @@ public class GunSelectionManager : MonoBehaviour
 
     void DisplayGun(int index)
     {
+        // Destroy previous gun
         if (currentGunInstance != null)
+        {
             Destroy(currentGunInstance);
+        }
 
         GunData gun = guns[index];
 
-        // Spawn gun at specific transform
-        if (gun.gunPrefab != null)
+        // Spawn gun as child of camera
+        if (gun.gunPrefab != null && cameraTransform != null)
         {
+            // Instantiate gun
             currentGunInstance = Instantiate(
                 gun.gunPrefab,
-                gunPosition,
-                Quaternion.Euler(gunRotation)
+                cameraTransform.position, // World position (will be adjusted)
+                cameraTransform.rotation  // World rotation (will be adjusted)
             );
 
-            // Set scale
-            currentGunInstance.transform.localScale = gunScale;
+            // Make it child of camera
+            currentGunInstance.transform.SetParent(cameraTransform);
 
-            Debug.Log($"Gun '{gun.gunName}' spawned at {gunPosition}");
+            // Set LOCAL transform values (relative to camera)
+            currentGunInstance.transform.localPosition = gunLocalPosition; // (0, 0, 1.5)
+            currentGunInstance.transform.localRotation = Quaternion.Euler(0f, 0f, 0f); // Start at 0
+            currentGunInstance.transform.localScale = gunLocalScale; // (1, 1, 1)
+
+            // Reset rotation counter
+            currentRotationY = 0f;
+
+            Debug.Log($"Gun '{gun.gunName}' spawned as child of camera with local position {gunLocalPosition}");
+        }
+        else if (cameraTransform == null)
+        {
+            Debug.LogError("Camera transform not assigned!");
         }
         else
         {
@@ -125,9 +154,9 @@ public class GunSelectionManager : MonoBehaviour
                 fireRateBar.fillAmount = gun.fireRate / 100f;
             if (rangeBar != null)
                 rangeBar.fillAmount = gun.range / 100f;
-
         }
     }
+
     IEnumerator AnimateBar(Image bar, float targetFill)
     {
         float startFill = bar.fillAmount;
@@ -143,7 +172,8 @@ public class GunSelectionManager : MonoBehaviour
 
         bar.fillAmount = targetFill;
     }
-    public void SelectGun() // CHANGED: was SelectCharacter
+
+    public void SelectGun()
     {
         // Save selected gun
         PlayerPrefs.SetInt("SelectedGun", currentIndex);
