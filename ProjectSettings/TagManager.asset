@@ -7,6 +7,8 @@ TagManager:
   - CinemachineTarget
   - GreenMuzzleFlash
   - Ground
+  - Pause_Resume_Panel
+  - Objectives_Panel
   layers:
   - Default
   - TransparentFX

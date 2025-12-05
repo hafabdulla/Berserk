@@ -6,15 +6,36 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/StartingScreen.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/LoadingScene.unity
+    guid: 372d40baef9d1ab4dbf77664731939cc
+  - enabled: 1
     path: Assets/Scenes/MainLobby.unity
     guid: 6dfe39483a29fee4c9b325d447d7fe50
   - enabled: 1
-    path: Assets/Scenes/GunSelection.unity
-    guid: f431402bed7b66b4e9ee6fc181693b38
+    path: Assets/Scenes/LevelLoadingScene.unity
+    guid: c446e42437aad3b4da0ddd7ca46211a6
   - enabled: 1
     path: Assets/Scenes/CharacterSelection.unity
     guid: 059539d850d1aab488fd9321a670b5b2
   - enabled: 1
+    path: Assets/Scenes/GunSelection.unity
+    guid: f431402bed7b66b4e9ee6fc181693b38
+  - enabled: 1
     path: Assets/Scenes/Level1.unity
     guid: 960b7744308ffea4e9744bafb4b1e217
+  - enabled: 1
+    path: Assets/Scenes/Level2.unity
+    guid: 397aa6f7913d50b43a327ecf40796f8b
+  - enabled: 1
+    path: Assets/Scenes/Level3.unity
+    guid: 66b51b0a686c8dc48a58bf8d873ed8e8
+  - enabled: 1
+    path: Assets/Scenes/GameWon.unity
+    guid: 1b1ddb4de943f524aa75117717b8a63a
+  - enabled: 1
+    path: Assets/Scenes/GameOverScreen.unity
+    guid: 990154c5fd5e1db4ca468887a504f0fc
   m_configObjects: {}
