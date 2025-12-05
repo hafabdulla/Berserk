@@ -30478,6 +30478,7 @@ GameObject:
   m_Component:
   - component: {fileID: 543450653678931912}
   - component: {fileID: 919132149218334067}
+  - component: {fileID: 919132149218334068}
   - component: {fileID: 1050101921}
   m_Layer: 0
   m_Name: Arm3
@@ -30512,6 +30513,21 @@ MonoBehaviour:
   recoilAmount: 1
   recoilRecoverySpeed: 0.5
   maxRecoilAngle: 5
+--- !u!114 &919132149218334068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132149218334066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b161af06ffab124bbefb664affd1022, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allGunPrefabs:
+  - {fileID: 4868579935444004055}
+  gunParent: {fileID: 543450653678931912}
 --- !u!4 &929024194294207808
 Transform:
   m_ObjectHideFlags: 0

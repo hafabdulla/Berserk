@@ -5,19 +5,20 @@ public class CharacterData : ScriptableObject
 {
     [Header("Basic Info")]
     public string characterName;
-    public GameObject characterPrefab; // The 3D model
+    public GameObject characterPrefab;
+
 
     [Header("Stats (0-100)")]
-    [Range(0, 100)] public float attack = 50f;    // ATTACK bar (red)
-    [Range(0, 100)] public float defence = 50f;   // DEFENCE bar (blue)
-    [Range(0, 100)] public float mobility = 50f;  // MOBILITY bar (yellow/green)
+    [Range(0, 100)] public float attack = 50f;
+    [Range(0, 100)] public float defence = 50f;
+    [Range(0, 100)] public float mobility = 50f;
 
     [Header("Visual (Optional)")]
-    public Sprite characterIcon; // For UI thumbnails if needed later
+    public Sprite characterIcon; 
 
     [Header("Gameplay Stats (For Later)")]
-    // These will be used in actual gameplay
-    public float maxHealth = 100f;        // Based on defence
-    public float damageMultiplier = 1f;   // Based on attack
-    public float moveSpeed = 5f;          // Based on mobility
+
+    public float maxHealth = 100f;      
+    public float damageMultiplier = 1f;
+    public float moveSpeed = 5f; 
 }
