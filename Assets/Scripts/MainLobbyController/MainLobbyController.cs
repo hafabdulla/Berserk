@@ -225,7 +225,11 @@ public class MainLobbyController : MonoBehaviour
 
         // All checks passed - start the game
         Debug.Log("Starting mission...");
-        SceneManager.LoadScene("Level1");
+
+        PlayerPrefs.SetString("NextLevelToLoad", "Level1");
+
+        // Load the LevelLoadingScene
+        SceneManager.LoadScene("LevelLoadingScene");
     }
 
     void OnSettingsClicked()
