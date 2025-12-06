@@ -19,8 +19,10 @@ public class EnemyHealth : MonoBehaviour
     {
         // Spawn fire/explosion effect
         if (fireEffect != null)
-            Instantiate(fireEffect, transform.position, Quaternion.identity);
-
+        {
+            Vector3 explosionPos = new Vector3(-15.6f, 0.69f, 182.61f);
+            Instantiate(fireEffect, explosionPos, Quaternion.identity);
+        }
         // Destroy the bomb object
         Destroy(gameObject);
 

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class WeaponController : MonoBehaviour
 {
@@ -152,10 +152,11 @@ public class WeaponController : MonoBehaviour
 
         currentAmmo--;
 
-        // Reset idle timer when shooting
+        // Reset idle animation logic
         idleTimer = 0f;
         hasPlayedInspect = false;
 
+        // FX
         muzzleFlash.Play();
         audioManager.GetComponent<AudioController>().playPlasmaGunSound();
 
@@ -165,33 +166,51 @@ public class WeaponController : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
         {
-            Debug.Log("Hit: " + hit.transform.name);
+            Debug.Log("Hit: " + hit.transform.root.name);
 
-            EnemyHealth target = hit.transform.GetComponent<EnemyHealth>();
-            if (target != null)
+            // Start with the direct hit object
+            Transform root = hit.transform;
+
+            // If the child wasn't tagged, check the parent root
+            if (!root.CompareTag("Target_To_BeDestroyed"))
+                root = hit.transform.root;
+
+            // 🔥 If the object (or its parent) IS the target
+            if (root.CompareTag("Target_To_BeDestroyed"))
             {
-                // Calculate actual damage with character stats
-                float actualDamage = damage;
+                EnemyHealth target = root.GetComponent<EnemyHealth>();
 
-                if (playerStats != null)
+                if (target != null)
                 {
-                    actualDamage = damage * playerStats.GetDamageMultiplier();
-                    Debug.Log($"Damage: {damage} x {playerStats.GetDamageMultiplier()} = {actualDamage}");
+                    float actualDamage = damage;
+
+                    if (playerStats != null)
+                        actualDamage = damage * playerStats.GetDamageMultiplier();
+
+                    target.TakeDamage(actualDamage);
                 }
 
-                target.TakeDamage(actualDamage); // Use multiplied damage
+                // Impact FX
+                SpawnImpact(hit);
+                return;
             }
 
-            if (impactEffect != null)
-            {
-                Vector3 pos = hit.point + hit.normal * 0.02f;
-                Quaternion rot = Quaternion.LookRotation(hit.normal);
-                Instantiate(impactEffect, pos, rot);
-            }
+            // Not target → normal impact only
+            SpawnImpact(hit);
         }
         else
         {
             Debug.Log("Raycast hit NOTHING");
+        }
+    }
+
+    private void SpawnImpact(RaycastHit hit)
+    {
+        if (impactEffect != null)
+        {
+            Vector3 pos = hit.point + hit.normal * 0.02f;
+            Quaternion rot = Quaternion.LookRotation(hit.normal);
+            Instantiate(impactEffect, pos, rot);
         }
     }
 
