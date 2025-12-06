@@ -11,6 +11,7 @@ TagManager:
   - Objectives_Panel
   - GameQuitPanel
   - SpawnPosition
+  - Target_To_BeDestroyed
   layers:
   - Default
   - TransparentFX
