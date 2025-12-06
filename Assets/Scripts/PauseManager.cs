@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -6,6 +6,12 @@ public class PauseManager : MonoBehaviour
 {
     private GameObject pausePanel;
     public GameObject objectivesPanel;
+
+    // ----------------------- NEW: Quit Panel -----------------------
+    private GameObject quitGamePanel;
+    public Button quitResumeButton;   // RESUME on Quit Panel
+    public Button quitConfirmButton;  // CONFIRM on Quit Panel
+    // ---------------------------------------------------------------
 
     [Header("Buttons")]
     public Button resumeButton;
@@ -15,7 +21,6 @@ public class PauseManager : MonoBehaviour
 
     [Header("Camera Control Script")]
     public MonoBehaviour cameraController;
-    // Drag your camera script here in the Inspector
 
     private bool isPaused = false;
     private bool showingObjectives = false;
@@ -23,6 +28,7 @@ public class PauseManager : MonoBehaviour
     void Start()
     {
         pausePanel = GameObject.FindGameObjectWithTag("Pause_Resume_Panel");
+        quitGamePanel = GameObject.FindGameObjectWithTag("GameQuitPanel");
 
         if (pausePanel != null)
             pausePanel.SetActive(false);
@@ -30,10 +36,17 @@ public class PauseManager : MonoBehaviour
         if (objectivesPanel != null)
             objectivesPanel.SetActive(false);
 
+        if (quitGamePanel != null)
+            quitGamePanel.SetActive(false);
+
         resumeButton?.onClick.AddListener(ResumeGame);
-        quitButton?.onClick.AddListener(OnQuitPressed);
+        quitButton?.onClick.AddListener(OpenQuitPanel);
         objectivesButton?.onClick.AddListener(ShowObjectives);
         restartButton?.onClick.AddListener(RestartLevel);
+
+        // Quit panel buttons
+        quitResumeButton?.onClick.AddListener(CloseQuitPanel);
+        quitConfirmButton?.onClick.AddListener(ConfirmQuit);
     }
 
     void Update()
@@ -41,6 +54,13 @@ public class PauseManager : MonoBehaviour
         // toggle pause
         if (Input.GetKeyDown(KeyCode.P))
         {
+            // If Quit Panel is open → close that first
+            if (quitGamePanel != null && quitGamePanel.activeSelf)
+            {
+                CloseQuitPanel();
+                return;
+            }
+
             if (isPaused && !showingObjectives)
                 ResumeGame();
             else if (!isPaused)
@@ -74,6 +94,9 @@ public class PauseManager : MonoBehaviour
         if (pausePanel != null)
             pausePanel.SetActive(false);
 
+        if (quitGamePanel != null)
+            quitGamePanel.SetActive(false);
+
         Time.timeScale = 1f;
         if (cameraController != null)
             cameraController.enabled = true;
@@ -95,6 +118,7 @@ public class PauseManager : MonoBehaviour
             showingObjectives = true;
         }
     }
+
     void HideObjectives()
     {
         if (objectivesPanel != null)
@@ -106,11 +130,37 @@ public class PauseManager : MonoBehaviour
         showingObjectives = false;
     }
 
-    private void OnQuitPressed()
+    // -------------------------------------------------------------------
+    //                     QUIT PANEL LOGIC
+    // -------------------------------------------------------------------
+
+    private void OpenQuitPanel()
     {
-        Debug.Log("QUIT pressed � show confirmation popup here.");
+        if (quitGamePanel != null)
+            quitGamePanel.SetActive(true);
+
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
     }
 
+    private void CloseQuitPanel()
+    {
+        if (quitGamePanel != null)
+            quitGamePanel.SetActive(false);
+
+        if (pausePanel != null)
+            pausePanel.SetActive(true);
+    }
+
+    private void ConfirmQuit()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainLobby");
+    }
+
+    // -------------------------------------------------------------------
+    //                           RESTART
+    // -------------------------------------------------------------------
     private void RestartLevel()
     {
         Time.timeScale = 1f;

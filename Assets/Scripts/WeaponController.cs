@@ -167,7 +167,7 @@ public class WeaponController : MonoBehaviour
         {
             Debug.Log("Hit: " + hit.transform.name);
 
-            Target target = hit.transform.GetComponent<Target>();
+            EnemyHealth target = hit.transform.GetComponent<EnemyHealth>();
             if (target != null)
             {
                 // Calculate actual damage with character stats

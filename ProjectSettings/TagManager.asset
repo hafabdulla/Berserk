@@ -9,6 +9,8 @@ TagManager:
   - Ground
   - Pause_Resume_Panel
   - Objectives_Panel
+  - GameQuitPanel
+  - SpawnPosition
   layers:
   - Default
   - TransparentFX
