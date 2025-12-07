@@ -8,6 +8,12 @@ TagManager:
   - GreenMuzzleFlash
   - Ground
   - headLamp
+  - Pause_Resume_Panel
+  - Objectives_Panel
+  - GameQuitPanel
+  - SpawnPosition
+  - Target_To_BeDestroyed
+  - Zombie
   layers:
   - Default
   - TransparentFX
