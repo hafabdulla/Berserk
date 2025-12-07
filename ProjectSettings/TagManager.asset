@@ -7,6 +7,7 @@ TagManager:
   - CinemachineTarget
   - GreenMuzzleFlash
   - Ground
+  - headLamp
   - Pause_Resume_Panel
   - Objectives_Panel
   - GameQuitPanel
