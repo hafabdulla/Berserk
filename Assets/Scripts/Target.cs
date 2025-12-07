@@ -29,5 +29,10 @@ public class EnemyHealth : MonoBehaviour
         // TODO: Trigger Game Won panel here
 
         Debug.Log("Bomb destroyed — You win!");
+        PauseManager pm = FindObjectOfType<PauseManager>();
+        if (pm != null)
+        {
+            pm.ShowLevelComplete();
+        }
     }
 }
