@@ -65,7 +65,16 @@ public class PlayerStats : MonoBehaviour
     void Die()
     {
         Debug.Log("Player died!");
-        // TODO: Game over, respawn, etc.
+
+        PauseManager gm = FindObjectOfType<PauseManager>();
+        if (gm != null)
+        {
+            gm.ShowGameOver();
+        }
+        else
+        {
+            Debug.LogWarning("No PauseManager found in scene!");
+        }
     }
+
 }
-    

@@ -11,6 +11,9 @@ public class PauseManager : MonoBehaviour
     private GameObject quitGamePanel;
     public Button quitResumeButton;   // RESUME on Quit Panel
     public Button quitConfirmButton;  // CONFIRM on Quit Panel
+
+    public GameObject gameOverPanel;
+    public  GameObject levelCompletePanel;
     // ---------------------------------------------------------------
 
     [Header("Buttons")]
@@ -25,10 +28,12 @@ public class PauseManager : MonoBehaviour
     private bool isPaused = false;
     private bool showingObjectives = false;
 
+
     void Start()
     {
         pausePanel = GameObject.FindGameObjectWithTag("Pause_Resume_Panel");
         quitGamePanel = GameObject.FindGameObjectWithTag("GameQuitPanel");
+        levelCompletePanel = GameObject.FindGameObjectWithTag("LevelCompletePanel");
 
         if (pausePanel != null)
             pausePanel.SetActive(false);
@@ -38,6 +43,9 @@ public class PauseManager : MonoBehaviour
 
         if (quitGamePanel != null)
             quitGamePanel.SetActive(false);
+
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(false);
 
         resumeButton?.onClick.AddListener(ResumeGame);
         quitButton?.onClick.AddListener(OpenQuitPanel);
@@ -54,7 +62,6 @@ public class PauseManager : MonoBehaviour
         // toggle pause
         if (Input.GetKeyDown(KeyCode.P))
         {
-            // If Quit Panel is open → close that first
             if (quitGamePanel != null && quitGamePanel.activeSelf)
             {
                 CloseQuitPanel();
@@ -165,5 +172,72 @@ public class PauseManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    // ---------------- GAME OVER ----------------
+    public void ShowGameOver()
+    {
+        Time.timeScale = 0f;
+
+        if (cameraController != null)
+            cameraController.enabled = false;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(true);
+    }
+
+
+    public void GameOver_Retry()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void GameOver_MainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainLobby");
+    }
+
+
+    // ---------------- LEVEL COMPLETE ----------------
+
+    public void LoadNextLevel()
+    {
+        Time.timeScale = 1f;
+
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextIndex = currentIndex + 1;
+
+        if (nextIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(nextIndex);
+        }
+        else
+        {
+            SceneManager.LoadScene("MainLobby");
+        }
+    }
+
+    public void RestartLevel_FromWin()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    public void ShowLevelComplete()
+    {
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(true);
+
+        Time.timeScale = 0f;
+
+        if (cameraController != null)
+            cameraController.enabled = false;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }
