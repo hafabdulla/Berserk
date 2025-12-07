@@ -169,6 +169,7 @@ public class WeaponController : MonoBehaviour
             Debug.Log("Hit: " + hit.transform.root.name);
 
             ZombieHealth zombieTarget = hit.transform.GetComponentInParent<ZombieHealth>();
+
             if (zombieTarget != null)
             {
                 float actualDamage = damage;
@@ -176,6 +177,32 @@ public class WeaponController : MonoBehaviour
                     actualDamage *= playerStats.GetDamageMultiplier();
 
                 zombieTarget.TakeDamage(100);
+                SpawnImpact(hit);
+                return;
+            }
+
+            CrocMenHealth crocMenTarget = hit.transform.GetComponentInParent<CrocMenHealth>();
+            if (crocMenTarget != null)
+            {
+                float actualDamage = damage;
+                if (playerStats != null)
+                    actualDamage *= playerStats.GetDamageMultiplier();
+
+                crocMenTarget.TakeDamage(100);
+                SpawnImpact(hit);
+                return;
+            }
+
+            Cyber2Health cyber2Target = hit.transform.GetComponentInParent<Cyber2Health>();
+            if (cyber2Target != null)
+            {
+                float actualDamage = damage;
+                if (playerStats != null)
+                    actualDamage *= playerStats.GetDamageMultiplier();
+
+                cyber2Target.TakeDamage(100);
+                SpawnImpact(hit);
+                return;
             }
 
             // Start with the direct hit object
@@ -185,7 +212,7 @@ public class WeaponController : MonoBehaviour
             if (!root.CompareTag("Target_To_BeDestroyed"))
                 root = hit.transform.root;
 
-            // 🔥 If the object (or its parent) IS the target
+            //  If the object (or its parent) IS the target
             if (root.CompareTag("Target_To_BeDestroyed"))
             {
                 EnemyHealth target = root.GetComponent<EnemyHealth>();
