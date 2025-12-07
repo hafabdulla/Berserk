@@ -168,6 +168,16 @@ public class WeaponController : MonoBehaviour
         {
             Debug.Log("Hit: " + hit.transform.root.name);
 
+            ZombieHealth zombieTarget = hit.transform.GetComponentInParent<ZombieHealth>();
+            if (zombieTarget != null)
+            {
+                float actualDamage = damage;
+                if (playerStats != null)
+                    actualDamage *= playerStats.GetDamageMultiplier();
+
+                zombieTarget.TakeDamage(100);
+            }
+
             // Start with the direct hit object
             Transform root = hit.transform;
 

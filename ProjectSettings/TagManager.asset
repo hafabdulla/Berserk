@@ -12,6 +12,7 @@ TagManager:
   - GameQuitPanel
   - SpawnPosition
   - Target_To_BeDestroyed
+  - Zombie
   layers:
   - Default
   - TransparentFX
