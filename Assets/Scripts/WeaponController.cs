@@ -36,8 +36,9 @@ public class WeaponController : MonoBehaviour
     private Vector3 targetRecoil = Vector3.zero;
 
     GameObject audioManager;
-
-
+    [Header("Head Light Settings")]
+    public GameObject headLamp;//assign in inspector 
+    private bool lightstate = true;
     private PlayerStats playerStats;
     void Start()
     {
@@ -81,6 +82,7 @@ public class WeaponController : MonoBehaviour
         }
 
         HandleRecoil();
+        headLampCheck();
     }
 
     void HandleMovementAnimations()
@@ -205,6 +207,16 @@ public class WeaponController : MonoBehaviour
         }
     }
 
+    void headLampCheck()
+    {
+        if(Input.GetKeyDown(KeyCode.H))
+        {
+            lightstate = !lightstate;
+            Debug.Log("Headlamp toggled");
+            headLamp.SetActive(lightstate);
+        }
+
+    }
     void AddRecoil()
     {
         float verticalRecoil = Random.Range(0.5f, 1.0f) * recoilAmount;
