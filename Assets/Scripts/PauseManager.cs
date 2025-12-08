@@ -5,6 +5,8 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
+
     private GameObject pausePanel;
     public GameObject objectivesPanel;
 
@@ -32,6 +34,32 @@ public class GameManager : MonoBehaviour
     [Header("Fade Image")]
     public Image fadeImage;
     public float fadeSpeed = 1f;
+
+
+    [Header("Level Objectives")]
+    public int currentLevel; // Set automatically based on scene
+    public int enemiesKilledCount = 0;
+    public int requiredKillsForLevel2 = 5;
+    private bool levelCompleted = false;
+
+    void Awake()
+    {
+        // Singleton pattern
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // Determine current level from scene name or build index
+        DetermineCurrentLevel();
+    }
+
+
     void Start()
     {
         pausePanel = GameObject.FindGameObjectWithTag("Pause_Resume_Panel");
@@ -58,6 +86,24 @@ public class GameManager : MonoBehaviour
         // Quit panel buttons
         quitResumeButton?.onClick.AddListener(CloseQuitPanel);
         quitConfirmButton?.onClick.AddListener(ConfirmQuit);
+
+        Debug.Log($"GameManager initialized for Level {currentLevel}");
+    }
+
+    void DetermineCurrentLevel()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Try to extract level number from scene name
+        if (sceneName.Contains("Level1") || sceneName.Contains("level1"))
+            currentLevel = 1;
+        else if (sceneName.Contains("Level2") || sceneName.Contains("level2"))
+            currentLevel = 2;
+        else if (sceneName.Contains("Level3") || sceneName.Contains("level3"))
+            currentLevel = 3;
+        else{
+            currentLevel = SceneManager.GetActiveScene().buildIndex + 5;
+        }
     }
 
     void Update()
@@ -81,6 +127,38 @@ public class GameManager : MonoBehaviour
         if (showingObjectives && Input.GetKeyDown(KeyCode.Space))
         {
             HideObjectives();
+        }
+    }
+
+    /// 
+    /// when the target is destroyed (Level 1)
+    /// 
+    public void OnTargetDestroyed()
+    {
+        if (currentLevel == 1 && !levelCompleted)
+        {
+            Debug.Log("Target destroyed! Level 1 complete!");
+            levelCompleted = true;
+            ShowLevelComplete();
+        }
+    }
+
+    /// 
+    ///when an enemy is killed (Level 2)
+    /// 
+    public void OnEnemyKilled()
+    {
+        if (currentLevel == 2 && !levelCompleted)
+        {
+            enemiesKilledCount++;
+            Debug.Log($"Enemy killed! Count: {enemiesKilledCount}/{requiredKillsForLevel2}");
+
+            if (enemiesKilledCount >= requiredKillsForLevel2)
+            {
+                Debug.Log("All enemies killed! Level 2 complete!");
+                levelCompleted = true;
+                ShowLevelComplete();
+            }
         }
     }
 
@@ -235,12 +313,10 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator FadeAndLoadNext()
     {
-        // make sure time runs normally
         Time.timeScale = 1f;
 
         Color c = fadeImage.color;
 
-        // fade alpha from 0 → 1
         while (c.a < 1f)
         {
             c.a += Time.deltaTime * fadeSpeed;
@@ -248,7 +324,7 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        // after full fade → load next level
+
         int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
 
         if (nextIndex < SceneManager.sceneCountInBuildSettings)
