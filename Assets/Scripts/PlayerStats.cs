@@ -66,7 +66,7 @@ public class PlayerStats : MonoBehaviour
     {
         Debug.Log("Player died!");
 
-        PauseManager gm = FindObjectOfType<PauseManager>();
+        GameManager gm = FindObjectOfType<GameManager>();
         if (gm != null)
         {
             gm.ShowGameOver();

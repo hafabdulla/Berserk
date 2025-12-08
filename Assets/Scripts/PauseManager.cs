@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
-public class PauseManager : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
     private GameObject pausePanel;
     public GameObject objectivesPanel;
@@ -28,7 +29,9 @@ public class PauseManager : MonoBehaviour
     private bool isPaused = false;
     private bool showingObjectives = false;
 
-
+    [Header("Fade Image")]
+    public Image fadeImage;
+    public float fadeSpeed = 1f;
     void Start()
     {
         pausePanel = GameObject.FindGameObjectWithTag("Pause_Resume_Panel");
@@ -141,7 +144,7 @@ public class PauseManager : MonoBehaviour
     //                     QUIT PANEL LOGIC
     // -------------------------------------------------------------------
 
-    private void OpenQuitPanel()
+    public void OpenQuitPanel()
     {
         if (quitGamePanel != null)
             quitGamePanel.SetActive(true);
@@ -150,7 +153,7 @@ public class PauseManager : MonoBehaviour
             pausePanel.SetActive(false);
     }
 
-    private void CloseQuitPanel()
+    public void CloseQuitPanel()
     {
         if (quitGamePanel != null)
             quitGamePanel.SetActive(false);
@@ -207,20 +210,9 @@ public class PauseManager : MonoBehaviour
 
     public void LoadNextLevel()
     {
-        Time.timeScale = 1f;
-
-        int currentIndex = SceneManager.GetActiveScene().buildIndex;
-        int nextIndex = currentIndex + 1;
-
-        if (nextIndex < SceneManager.sceneCountInBuildSettings)
-        {
-            SceneManager.LoadScene(nextIndex);
-        }
-        else
-        {
-            SceneManager.LoadScene("MainLobby");
-        }
+        StartCoroutine(FadeAndLoadNext());
     }
+
 
     public void RestartLevel_FromWin()
     {
@@ -240,4 +232,29 @@ public class PauseManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
+
+    private IEnumerator FadeAndLoadNext()
+    {
+        // make sure time runs normally
+        Time.timeScale = 1f;
+
+        Color c = fadeImage.color;
+
+        // fade alpha from 0 → 1
+        while (c.a < 1f)
+        {
+            c.a += Time.deltaTime * fadeSpeed;
+            fadeImage.color = c;
+            yield return null;
+        }
+
+        // after full fade → load next level
+        int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
+
+        if (nextIndex < SceneManager.sceneCountInBuildSettings)
+            SceneManager.LoadScene(nextIndex);
+        else
+            SceneManager.LoadScene("MainLobby");
+    }
+
 }
