@@ -23,7 +23,8 @@ public class ZombieHealth : MonoBehaviour
         currentHealth -= amount;
 
         if (animator != null)
-            animator.SetTrigger("Hit"); // hit animation
+            animator.SetTrigger("Hit"); 
+        
 
         if (hitEffect != null)
             Instantiate(hitEffect, transform.position + Vector3.up * 1f, Quaternion.identity);
@@ -36,19 +37,31 @@ public class ZombieHealth : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return;
         isDead = true;
 
-        // Make the enemy fall
-        Rigidbody rb = gameObject.AddComponent<Rigidbody>();
-        rb.mass = 50f; // heavy so it looks like it collapses
-        rb.AddForce(Vector3.back * 2f, ForceMode.Impulse); // small push backward
+        Debug.Log("Zombie killed!");
 
-        // Stop AI movement
+        Rigidbody rb = gameObject.AddComponent<Rigidbody>();
+        rb.mass = 50f; 
+        rb.AddForce(Vector3.back * 2f, ForceMode.Impulse); 
+
+
         ZombieController ai = GetComponent<ZombieController>();
         if (ai != null)
             ai.enabled = false;
 
-        // Remove after some seconds
+        // Notify GameManager (Level 2 objective)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnEnemyKilled();
+        }
+        else
+        {
+            Debug.LogWarning("GameManager.Instance is null!");
+        }
+
+
         Destroy(gameObject, 3f);
     }
 }

@@ -5360,6 +5360,10 @@ MonoBehaviour:
   cameraController: {fileID: 1365218678}
   fadeImage: {fileID: 1480123142}
   fadeSpeed: 1
+  currentLevel: 0
+  enemiesKilledCount: 0
+  requiredKillsForLevel2: 5
+  requiredKillsForLevel1: 2
 --- !u!224 &277808623
 RectTransform:
   m_ObjectHideFlags: 0
@@ -24617,7 +24621,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4022741551580116, guid: e10e470cb8ac58346ab2adcf73cc6e93, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.253
+      value: 2.334
       objectReference: {fileID: 0}
     - target: {fileID: 4022741551580116, guid: e10e470cb8ac58346ab2adcf73cc6e93, type: 3}
       propertyPath: m_LocalPosition.z
@@ -25891,7 +25895,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Asim Munir watches every step\u2026 even your escape. Continue?"
+  m_text: "Big Brother watches every step\u2026 even your escape. Continue?"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b15b4d591ecb54946a86356bcba1d2a7, type: 2}
   m_sharedMaterial: {fileID: 981378714558085938, guid: b15b4d591ecb54946a86356bcba1d2a7, type: 2}

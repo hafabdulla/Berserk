@@ -40,6 +40,8 @@ public class GameManager : MonoBehaviour
     public int currentLevel; // Set automatically based on scene
     public int enemiesKilledCount = 0;
     public int requiredKillsForLevel2 = 5;
+    public int requiredKillsForLevel1 = 2;
+    private bool targetDestroyed = false;
     private bool levelCompleted = false;
 
     void Awake()
@@ -133,13 +135,22 @@ public class GameManager : MonoBehaviour
     /// 
     /// when the target is destroyed (Level 1)
     /// 
+    public bool IsTargetDestroyed()
+    {
+        return targetDestroyed;
+    }
+
+    public int GetEnemyKillCount()
+    {
+        return enemiesKilledCount;
+    }
     public void OnTargetDestroyed()
     {
         if (currentLevel == 1 && !levelCompleted)
         {
-            Debug.Log("Target destroyed! Level 1 complete!");
-            levelCompleted = true;
-            ShowLevelComplete();
+            Debug.Log("Target destroyed!");
+            targetDestroyed = true;
+            CheckLevel1Completion();
         }
     }
 
@@ -148,10 +159,17 @@ public class GameManager : MonoBehaviour
     /// 
     public void OnEnemyKilled()
     {
-        if (currentLevel == 2 && !levelCompleted)
+        enemiesKilledCount++;
+        Debug.Log($"Enemy killed! Total count: {enemiesKilledCount}");
+
+        if (currentLevel == 1 && !levelCompleted)
         {
-            enemiesKilledCount++;
-            Debug.Log($"Enemy killed! Count: {enemiesKilledCount}/{requiredKillsForLevel2}");
+            Debug.Log($"Level 1 - Enemies killed: {enemiesKilledCount}/{requiredKillsForLevel1}");
+            CheckLevel1Completion();
+        }
+        else if (currentLevel == 2 && !levelCompleted)
+        {
+            Debug.Log($"Level 2 - Enemies killed: {enemiesKilledCount}/{requiredKillsForLevel2}");
 
             if (enemiesKilledCount >= requiredKillsForLevel2)
             {
@@ -159,6 +177,22 @@ public class GameManager : MonoBehaviour
                 levelCompleted = true;
                 ShowLevelComplete();
             }
+        }
+    }
+
+    private void CheckLevel1Completion()
+    {
+        if (targetDestroyed && enemiesKilledCount >= requiredKillsForLevel1)
+        {
+            Debug.Log("Level 1 Complete! Target destroyed AND 2 enemies killed!");
+            levelCompleted = true;
+            ShowLevelComplete();
+        }
+        else
+        {
+            string targetStatus = targetDestroyed ? "Target destroyed" : "Target not destroyed";
+            string enemyStatus = $"{enemiesKilledCount}/{requiredKillsForLevel1} enemies killed";
+            Debug.Log($"Level 1 Progress: {targetStatus} | {enemyStatus}");
         }
     }
 

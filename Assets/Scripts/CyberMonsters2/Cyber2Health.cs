@@ -36,19 +36,29 @@ public class Cyber2Health : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return;
         isDead = true;
 
-        // Make the enemy fall
-        Rigidbody rb = gameObject.AddComponent<Rigidbody>();
-        rb.mass = 50f; // heavy so it looks like it collapses
-        rb.AddForce(Vector3.back * 2f, ForceMode.Impulse); // small push backward
+        Debug.Log("Cyber2 killed!");
 
-        // Stop AI movement
-        ZombieController ai = GetComponent<ZombieController>();
+        Rigidbody rb = gameObject.AddComponent<Rigidbody>();
+        rb.mass = 50f;
+        rb.AddForce(Vector3.back * 2f, ForceMode.Impulse);
+
+
+        Cyber2Controller ai = GetComponent<Cyber2Controller>();
         if (ai != null)
             ai.enabled = false;
 
-        // Remove after some seconds
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnEnemyKilled();
+        }
+        else
+        {
+            Debug.LogWarning("GameManager.Instance is null!");
+        }
+
         Destroy(gameObject, 3f);
     }
 }
