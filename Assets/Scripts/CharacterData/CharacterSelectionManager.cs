@@ -81,8 +81,6 @@ public class CharacterSelectionManager : MonoBehaviour
             Animator animator = currentCharacterInstance.GetComponent<Animator>();
             if (animator != null)
             {
-                // Some animators use "Idle" trigger, some auto-play idle
-                // Try triggering it, but don't worry if it doesn't exist
                 if (animator.parameters.Length > 0)
                 {
                     foreach (var param in animator.parameters)
@@ -154,7 +152,6 @@ public class CharacterSelectionManager : MonoBehaviour
 
         Debug.Log("Selected: " + characters[currentIndex].characterName);
 
-        // Load next scene (e.g., Level1 or WeaponSelection)
         SceneManager.LoadScene("MainLobby");
     }
 }

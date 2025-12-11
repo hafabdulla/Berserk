@@ -38,12 +38,10 @@ public class Cyber2Controller : MonoBehaviour
 
         if (distToPlayer <= detectionRange)
         {
-            // PLAYER DETECTED ? RUN TOWARD PLAYER
             agent.speed = runSpeed;
             agent.SetDestination(player.position);
             agent.isStopped = false;
 
-            // Look at player smoothly
             Vector3 lookDir = (player.position - transform.position).normalized;
             lookDir.y = 0; // keep zombie upright
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 5f);
@@ -51,7 +49,7 @@ public class Cyber2Controller : MonoBehaviour
             if (anim != null)
             {
                 anim.SetBool("Walking", false);
-                anim.SetBool("Running", true); // assuming you have a Running boolean
+                anim.SetBool("Running", true); 
             }
 
             // Attack if in range

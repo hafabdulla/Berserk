@@ -3,7 +3,8 @@ using UnityEngine;
 public class EnemyHealth : MonoBehaviour
 {
     public float health = 100f;   // tweak however you want
-    public GameObject fireEffect; // drag your explosion/fire prefab here
+    public GameObject fireEffect; 
+
 
     public void TakeDamage(float amount)
     {
@@ -23,16 +24,18 @@ public class EnemyHealth : MonoBehaviour
             Vector3 explosionPos = new Vector3(-15.6f, 0.69f, 182.61f);
             Instantiate(fireEffect, explosionPos, Quaternion.identity);
         }
-        // Destroy the bomb object
-        Destroy(gameObject);
 
-        // TODO: Trigger Game Won panel here
+        Debug.Log("Target destroyed!");
 
-        Debug.Log("Bomb destroyed — You win!");
-        GameManager pm = FindObjectOfType<GameManager>();
-        if (pm != null)
+        if (GameManager.Instance != null)
         {
-            pm.ShowLevelComplete();
+            GameManager.Instance.OnTargetDestroyed();
         }
+        else
+        {
+            Debug.LogWarning("GameManager.Instance is null!");
+        }
+
+        Destroy(gameObject);
     }
 }
