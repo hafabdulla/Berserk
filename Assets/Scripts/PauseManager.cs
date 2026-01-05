@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 using System.Collections;
 
 public class GameManager : MonoBehaviour
@@ -16,7 +17,7 @@ public class GameManager : MonoBehaviour
     public Button quitConfirmButton;  // CONFIRM on Quit Panel
 
     public GameObject gameOverPanel;
-    public  GameObject levelCompletePanel;
+    public GameObject levelCompletePanel;
     // ---------------------------------------------------------------
 
     [Header("Buttons")]
@@ -35,14 +36,30 @@ public class GameManager : MonoBehaviour
     public Image fadeImage;
     public float fadeSpeed = 1f;
 
-
     [Header("Level Objectives")]
     public int currentLevel; // Set automatically based on scene
     public int enemiesKilledCount = 0;
     public int requiredKillsForLevel2 = 5;
     public int requiredKillsForLevel1 = 2;
     private bool targetDestroyed = false;
+
+    // ----------------------- EXISTING SCORE (Lifetime Total) -----------------------
+    private int totalCoins = 0;
+    private int totalKills = 0;
+    private float totalDamageDealt = 0f;
     private bool levelCompleted = false;
+
+    // ----------------------- NEW: Additional Score Tracking -----------------------
+    [Header("Score Display (Optional)")]
+    public TextMeshProUGUI currentLevelScoreText; // Assign in inspector - displays current level score in real-time
+
+    // Current Level Score - resets each level
+    private int currentLevelScore = 0;
+    private int currentLevelKills = 0;
+
+    // Current Session Score - sum of all levels in this play session
+    private int sessionScore = 0;
+    // -------------------------------------------------------------------------------
 
     void Awake()
     {
@@ -50,6 +67,8 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            LoadTotalCoins();
+            LoadSessionScore();
         }
         else
         {
@@ -60,7 +79,6 @@ public class GameManager : MonoBehaviour
         // Determine current level from scene name or build index
         DetermineCurrentLevel();
     }
-
 
     void Start()
     {
@@ -89,6 +107,9 @@ public class GameManager : MonoBehaviour
         quitResumeButton?.onClick.AddListener(CloseQuitPanel);
         quitConfirmButton?.onClick.AddListener(ConfirmQuit);
 
+        // Update score display initially
+        UpdateCurrentLevelScoreDisplay();
+
         Debug.Log($"GameManager initialized for Level {currentLevel}");
     }
 
@@ -103,7 +124,8 @@ public class GameManager : MonoBehaviour
             currentLevel = 2;
         else if (sceneName.Contains("Level3") || sceneName.Contains("level3"))
             currentLevel = 3;
-        else{
+        else
+        {
             currentLevel = SceneManager.GetActiveScene().buildIndex + 5;
         }
     }
@@ -144,6 +166,7 @@ public class GameManager : MonoBehaviour
     {
         return enemiesKilledCount;
     }
+
     public void OnTargetDestroyed()
     {
         if (currentLevel == 1 && !levelCompleted)
@@ -155,9 +178,9 @@ public class GameManager : MonoBehaviour
     }
 
     /// 
-    ///when an enemy is killed (Level 2)
+    /// when an enemy is killed (Level 2)
     /// 
-    public void OnEnemyKilled()
+    public void OnEnemyKilled(string EnemyType)
     {
         enemiesKilledCount++;
         Debug.Log($"Enemy killed! Total count: {enemiesKilledCount}");
@@ -178,7 +201,133 @@ public class GameManager : MonoBehaviour
                 ShowLevelComplete();
             }
         }
+
+        // Coin Collection - Calculate coins earned
+        int coinsEarned = 0;
+
+        if (EnemyType == "Zombie")
+        {
+            coinsEarned = 10; // 10 coins for killing a zombie
+        }
+        else if (EnemyType == "CyberMonster")
+        {
+            coinsEarned = 20; // 20 coins for killing a cyber monster
+        }
+
+        // Update existing lifetime total (your original logic)
+        totalCoins += coinsEarned;
+        totalKills++;
+        SaveTotalCoins();
+
+        // NEW: Update current level score
+        currentLevelScore += coinsEarned;
+        currentLevelKills++;
+        UpdateCurrentLevelScoreDisplay();
+
+        Debug.Log($"Enemy killed: {EnemyType}. Coins earned: {coinsEarned}. Level Score: {currentLevelScore}. Total coins: {totalCoins}");
     }
+
+    public void AddDamageDealt(float damage)
+    {
+        totalDamageDealt += damage;
+    }
+
+    public void OnLevelCompleted()
+    {
+        levelCompleted = true;
+
+        // Add coins based on total damage dealt
+        int damageCoins = Mathf.FloorToInt(totalDamageDealt / 10f); // 1 coin for every 10 damage
+        totalCoins += damageCoins;
+
+        // NEW: Add damage bonus to current level score
+        currentLevelScore += damageCoins;
+
+        SaveTotalCoins();
+        UpdateCurrentLevelScoreDisplay();
+
+        Debug.Log($"Level completed! Damage coins earned: {damageCoins}. Total coins: {totalCoins}");
+    }
+
+    // ----------------------- EXISTING GETTERS (unchanged) -----------------------
+    public int GetTotalCoins()
+    {
+        return totalCoins;
+    }
+
+    public int GetTotalKills()
+    {
+        return totalKills;
+    }
+
+    public float GetTotalDamageDealt()
+    {
+        return totalDamageDealt;
+    }
+
+    // ----------------------- NEW: Additional Getters -----------------------
+    public int GetCurrentLevelScore()
+    {
+        return currentLevelScore;
+    }
+
+    public int GetCurrentLevelKills()
+    {
+        return currentLevelKills;
+    }
+
+    public int GetSessionScore()
+    {
+        return sessionScore;
+    }
+
+    // ----------------------- EXISTING SAVE/LOAD (unchanged) -----------------------
+    private void SaveTotalCoins()
+    {
+        PlayerPrefs.SetInt("TotalCoins", totalCoins);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadTotalCoins()
+    {
+        totalCoins = PlayerPrefs.GetInt("TotalCoins", 0); // Default to 0 if no coins are saved
+    }
+
+    // ----------------------- NEW: Session Score Save/Load -----------------------
+    private void LoadSessionScore()
+    {
+        sessionScore = PlayerPrefs.GetInt("SessionScore", 0);
+    }
+
+    private void SaveSessionScore()
+    {
+        PlayerPrefs.SetInt("SessionScore", sessionScore);
+        PlayerPrefs.Save();
+    }
+
+    private void UpdateCurrentLevelScoreDisplay()
+    {
+        if (currentLevelScoreText != null)
+        {
+            currentLevelScoreText.text = "Level Score: " + currentLevelScore.ToString();
+        }
+    }
+
+    // Called when level ends - adds current level score to session
+    private void FinalizeCurrentLevelScore()
+    {
+        sessionScore += currentLevelScore;
+        SaveSessionScore();
+        Debug.Log($"Level finalized! Level Score: {currentLevelScore}, Session Score: {sessionScore}");
+    }
+
+    // Call this when starting a new game session (from MainLobby)
+    public static void ResetSessionScore()
+    {
+        PlayerPrefs.SetInt("SessionScore", 0);
+        PlayerPrefs.Save();
+    }
+    // -------------------------------------------------------------------------------
 
     private void CheckLevel1Completion()
     {
@@ -276,6 +425,9 @@ public class GameManager : MonoBehaviour
 
     private void ConfirmQuit()
     {
+        // NEW: Finalize session score before quitting
+        FinalizeCurrentLevelScore();
+
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainLobby");
     }
@@ -292,6 +444,9 @@ public class GameManager : MonoBehaviour
     // ---------------- GAME OVER ----------------
     public void ShowGameOver()
     {
+        // NEW: Finalize session score on game over
+        FinalizeCurrentLevelScore();
+
         Time.timeScale = 0f;
 
         if (cameraController != null)
@@ -303,7 +458,6 @@ public class GameManager : MonoBehaviour
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
     }
-
 
     public void GameOver_Retry()
     {
@@ -317,20 +471,22 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("MainLobby");
     }
 
-
     // ---------------- LEVEL COMPLETE ----------------
 
     public void LoadNextLevel()
     {
+        // NEW: Finalize session score before loading next level
+        FinalizeCurrentLevelScore();
+
         StartCoroutine(FadeAndLoadNext());
     }
-
 
     public void RestartLevel_FromWin()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
     public void ShowLevelComplete()
     {
         if (levelCompletePanel != null)
@@ -358,7 +514,6 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-
         int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
 
         if (nextIndex < SceneManager.sceneCountInBuildSettings)
@@ -366,5 +521,4 @@ public class GameManager : MonoBehaviour
         else
             SceneManager.LoadScene("MainLobby");
     }
-
 }

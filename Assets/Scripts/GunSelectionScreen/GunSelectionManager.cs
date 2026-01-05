@@ -57,7 +57,23 @@ public class GunSelectionManager : MonoBehaviour
 
     void Update()
     {
-        // Rotate gun continuously around Y axis
+        Transform acrRifle = FindChildRecursive(cameraTransform, "ACRRifle");
+
+        if(acrRifle != null)
+        {
+            currentRotationY += rotationSpeed * Time.deltaTime;
+            if(rotateGun && currentRotationY >= 360f)
+            {
+                currentRotationY -= 360f;
+            }
+            acrRifle.localRotation = Quaternion.Euler(0f, currentRotationY, 0f);
+        }
+        else
+        {
+            Debug.Log("Gun not found in Update");
+        }
+
+        //Rotate gun continuously around Y axis
         if (rotateGun && currentGunInstance != null)
         {
             currentRotationY += rotationSpeed * Time.deltaTime;
@@ -73,6 +89,8 @@ public class GunSelectionManager : MonoBehaviour
 
     public void NextGun()
     {
+        DestroyPreviousGun(); // Destroy the current gun before switching to the next one
+
         currentIndex++;
         if (currentIndex >= guns.Length)
             currentIndex = 0;
@@ -82,11 +100,22 @@ public class GunSelectionManager : MonoBehaviour
 
     public void PreviousGun()
     {
+        DestroyPreviousGun(); // Destroy the current gun before switching to the previous one
+
         currentIndex--;
         if (currentIndex < 0)
             currentIndex = guns.Length - 1;
 
         DisplayGun(currentIndex);
+    }
+
+    void DestroyPreviousGun()
+    {
+        // Find all children of the Main Camera and destroy them
+        foreach (Transform child in cameraTransform)
+        {
+            Destroy(child.gameObject);
+        }
     }
 
     void DisplayGun(int index)
@@ -112,10 +141,49 @@ public class GunSelectionManager : MonoBehaviour
             // Make it child of camera
             currentGunInstance.transform.SetParent(cameraTransform);
 
-            // Set LOCAL transform values (relative to camera)
-            currentGunInstance.transform.localPosition = gunLocalPosition; // (0, 0, 1.5)
-            currentGunInstance.transform.localRotation = Quaternion.Euler(0f, 0f, 0f); // Start at 0
-            currentGunInstance.transform.localScale = gunLocalScale; // (1, 1, 1)
+            // Check if the gun is "KN-44"
+            if (gun.gunName == "KN-44")
+            {
+                // Locate the second "ACRRifle" inside "Armature"
+                Transform armatureTransform = FindChildRecursive(currentGunInstance.transform, "Armature");
+                Transform armsTransform = FindChildRecursive(currentGunInstance.transform, "arms");
+                Transform secondAcrRifleTransform = null;
+
+                if (armatureTransform != null)
+                {
+                    secondAcrRifleTransform = FindChildRecursive(armatureTransform, "ACRRifle");
+                }
+
+                if (armsTransform != null)
+                {
+                    armsTransform.gameObject.SetActive(false);
+                    Debug.Log("arms object disabled");
+                }
+
+                if (secondAcrRifleTransform != null)
+                {
+                    // Reparent the second "ACRRifle" directly under the Main Camera
+                    secondAcrRifleTransform.SetParent(cameraTransform);
+
+                    // Adjust its transform
+                    secondAcrRifleTransform.localPosition = new Vector3(0f, -0.1f, 2f);
+                    secondAcrRifleTransform.localRotation = Quaternion.Euler(25f, 90f, 0f);
+                    secondAcrRifleTransform.localScale = new Vector3(150f, 150f, 150f);
+
+                    Debug.Log("Second ACRRifle reparented and adjusted successfully.");
+                }
+                else
+                {
+                    Debug.LogError("Second ACRRifle not found inside Armature.");
+                }
+            }
+            else
+            {
+                // Set LOCAL transform values (relative to camera)
+                currentGunInstance.transform.localPosition = gunLocalPosition; // (0, 0, 1.5)
+                currentGunInstance.transform.localRotation = Quaternion.Euler(0f, 90f, 0f); // Start at 0
+                currentGunInstance.transform.localScale = gunLocalScale; // (1, 1, 1)
+            }
 
             // Reset rotation counter
             currentRotationY = 0f;
@@ -144,7 +212,6 @@ public class GunSelectionManager : MonoBehaviour
                 StartCoroutine(AnimateBar(fireRateBar, gun.fireRate / 100f));
             if (rangeBar != null)
                 StartCoroutine(AnimateBar(rangeBar, gun.range / 100f));
-
         }
         else
         {
@@ -155,6 +222,24 @@ public class GunSelectionManager : MonoBehaviour
             if (rangeBar != null)
                 rangeBar.fillAmount = gun.range / 100f;
         }
+    }
+
+    Transform FindChildRecursive(Transform parent, string childName)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == childName)
+            {
+                return child;
+            }
+
+            Transform result = FindChildRecursive(child, childName);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
     }
 
     IEnumerator AnimateBar(Image bar, float targetFill)

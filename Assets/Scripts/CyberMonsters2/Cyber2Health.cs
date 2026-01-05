@@ -52,7 +52,7 @@ public class Cyber2Health : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnEnemyKilled();
+            GameManager.Instance.OnEnemyKilled("CyberMonster");
         }
         else
         {
