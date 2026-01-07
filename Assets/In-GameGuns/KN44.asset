@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: KN44
   m_EditorClassIdentifier: 
   gunName: KN-44
-  gunPrefab: {fileID: 4868579935490016500, guid: d8f3b4be17ae23a40a65adaea73c47c5, type: 3}
+  gunPrefab: {fileID: 919132149155446097, guid: d8f3b4be17ae23a40a65adaea73c47c5, type: 3}
   damage: 60
   fireRate: 90
   range: 90

@@ -23,7 +23,7 @@ public class WeaponController : MonoBehaviour
     [Header("Idle Inspection")]
     public float idleTimeBeforeInspect = 5f; // Time in seconds before inspect plays
     private float idleTimer = 0f;
-    private bool hasPlayedInspect = false;
+    private bool isInspecting = false;
 
     private float nextTimeToFire = 0f;
 
@@ -40,6 +40,9 @@ public class WeaponController : MonoBehaviour
     public GameObject headLamp;//assign in inspector 
     private bool lightstate = true;
     private PlayerStats playerStats;
+
+    private bool wasRunning = false; // Add this field to cache running state
+
     void Start()
     {
         currentAmmo = maxAmmo;
@@ -90,10 +93,38 @@ public class WeaponController : MonoBehaviour
         if (gunAnimator == null) return;
 
         bool isMoving = IsPlayerMoving();
-        bool isRunning = Input.GetKey(KeyCode.LeftShift) && isMoving;
+        bool shiftHeld = Input.GetKey(KeyCode.LeftShift);
+        
+        // Determine running state with hysteresis to prevent flickering
+        bool isRunning;
+        if (wasRunning)
+        {
+            // If we were running, stay running as long as shift is held (even if movement briefly dips)
+            isRunning = shiftHeld && isMoving;
+        }
+        else
+        {
+            // If we weren't running, start running only if both conditions are met
+            isRunning = shiftHeld && isMoving;
+        }
+        wasRunning = isRunning;
 
-        gunAnimator.SetBool("IsWalking", isMoving && !isRunning);
-        gunAnimator.SetBool("IsRunning", isRunning);
+        // Set bools in correct order - set IsRunning first to prevent transition conflicts
+        if (isRunning)
+        {
+            gunAnimator.SetBool("IsRunning", true);
+            gunAnimator.SetBool("IsWalking", false);
+        }
+        else if (isMoving)
+        {
+            gunAnimator.SetBool("IsRunning", false);
+            gunAnimator.SetBool("IsWalking", true);
+        }
+        else
+        {
+            gunAnimator.SetBool("IsRunning", false);
+            gunAnimator.SetBool("IsWalking", false);
+        }
 
         float moveSpeed = 0f;
         if (isRunning)
@@ -111,37 +142,56 @@ public class WeaponController : MonoBehaviour
         bool isMoving = IsPlayerMoving();
         bool isShooting = Input.GetButton("Fire1");
         bool isReloading = Input.GetKey(KeyCode.R);
+        bool isDoingSomething = isMoving || isShooting || isReloading;
 
-        // Reset timer if player is doing something
-        if (isMoving || isShooting || isReloading)
+        // If player is doing something, reset idle timer and interrupt inspection if active
+        if (isDoingSomething)
         {
             idleTimer = 0f;
-            hasPlayedInspect = false;
+
+            // Interrupt inspect animation if currently inspecting
+            if (isInspecting)
+            {
+                isInspecting = false;
+                // Reset the Inspect trigger to stop the animation
+                gunAnimator.ResetTrigger("Inspect");
+                // Force transition back to idle/movement state
+                gunAnimator.SetTrigger("CancelInspect");
+            }
             return;
         }
 
-        // Increment idle timer
+        // Player is idle - increment idle timer
         idleTimer += Time.deltaTime;
 
-        // Trigger inspect animation when idle long enough
-        if (idleTimer >= idleTimeBeforeInspect && !hasPlayedInspect)
+        // Trigger inspect animation when idle long enough and not already inspecting
+        if (idleTimer >= idleTimeBeforeInspect && !isInspecting)
         {
             gunAnimator.SetTrigger("Inspect");
-            hasPlayedInspect = true;
-            idleTimer = 0f; // Reset timer after playing
+            isInspecting = true;
         }
+    }
+
+    // Call this from an Animation Event at the end of the Inspect animation
+    public void OnInspectAnimationComplete()
+    {
+        isInspecting = false;
+        idleTimer = 0f; // Reset timer so inspect can play again after another idle period
     }
 
     bool IsPlayerMoving()
     {
-        if (playerController != null)
+        // Use GetAxisRaw for immediate input values without smoothing
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
+        
+        // GetAxisRaw returns -1, 0, or 1 immediately, so any non-zero value means moving
+        if (Mathf.Abs(horizontal) > 0.01f || Mathf.Abs(vertical) > 0.01f)
         {
-            return playerController.velocity.magnitude > 0.1f;
+            return true;
         }
 
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-        return Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f;
+        return false;
     }
 
     public void Shoot()
@@ -154,9 +204,14 @@ public class WeaponController : MonoBehaviour
 
         currentAmmo--;
 
-        // Reset idle animation logic
+        // Reset idle animation logic and interrupt inspection if active
         idleTimer = 0f;
-        hasPlayedInspect = false;
+        if (isInspecting)
+        {
+            isInspecting = false;
+            gunAnimator.ResetTrigger("Inspect");
+            gunAnimator.SetTrigger("CancelInspect");
+        }
 
         // FX
         muzzleFlash.Play();
@@ -290,9 +345,14 @@ public class WeaponController : MonoBehaviour
         Debug.Log("Reloading...");
         currentAmmo = maxAmmo;
 
-        // Reset idle timer when reloading
+        // Reset idle timer and interrupt inspection if active
         idleTimer = 0f;
-        hasPlayedInspect = false;
+        if (isInspecting)
+        {
+            isInspecting = false;
+            gunAnimator.ResetTrigger("Inspect");
+            gunAnimator.SetTrigger("CancelInspect");
+        }
 
         if (gunAnimator != null)
         {

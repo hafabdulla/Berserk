@@ -158,7 +158,7 @@ public class MainLobbyController : MonoBehaviour
         // Load player info from PlayerPrefs
         string playerName = PlayerPrefs.GetString("PlayerName", "TANGO SsS00024");
         int playerRank = PlayerPrefs.GetInt("PlayerRank", 15);
-        int goldAmount = PlayerPrefs.GetInt("GoldAmount", 152);
+        int goldAmount = PlayerPrefs.GetInt("TotalCoins", 0); // Read directly from PlayerPrefs
 
         // Update UI
         if (usernameText != null)

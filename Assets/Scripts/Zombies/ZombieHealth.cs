@@ -54,7 +54,7 @@ public class ZombieHealth : MonoBehaviour
         // Notify GameManager (Level 2 objective)
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnEnemyKilled();
+            GameManager.Instance.OnEnemyKilled("Zombie");
         }
         else
         {
